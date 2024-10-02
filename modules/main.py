@@ -23,6 +23,8 @@ from pyrogram.types.messages_and_media import message
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from style import Ashu 
 
+from yt_dlp import YoutubeDL
+
 # Initialize the bot
 bot = Client(
     "bot",
@@ -33,6 +35,14 @@ bot = Client(
 
 # Define aiohttp routes
 routes = web.RouteTableDef()
+
+def download_video(url):
+    # function implementation
+    pass
+
+# Usage
+download_video("video_url")
+
 
 @routes.get("/", allow_head=True)
 async def root_route_handler(request):
@@ -168,7 +178,26 @@ async def account_login(bot: Client, m: Message):
 
             elif 'media-cdn' in url or 'webvideos' in url or 'drmcdni' in url:
              url = requests.get(f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', headers={'x-access-token': 'eyJjb3Vyc2VJZCI6IjQ1NjY4NyIsInR1dG9ySWQiOm51bGwsIm9yZ0lkIjo0ODA2MTksImNhdGVnb3J5SWQiOm51bGx9'}).json()['url']
-           
+
+            elif 'akamai.net.in' in url:
+            url = url.replace("encrypted.mkv", "manifest.m3u8")
+            cmd = f'yt-dlp -f "bv[height=480][ext=mp4]+ba[ext=m4a]" "{url}" -o "{name}.mp4"'
+            try:
+            # Add retry mechanism for download interruptions
+                for attempt in range(3):
+                    try:
+                        res_file = await helper.download_video(url, cmd, name)
+                        break
+                    except Exception as e:
+                        print(f"Download interrupted: {str(e)}")
+                        continue
+                else:
+                    await m.reply_text(f"Failed to download after 3 attempts.")
+                    return
+            except Exception as e:
+                await m.reply_text(f"⌘ 𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐈𝐧𝐭𝐞𝐫𝐮𝐩𝐭𝐞𝐝\n{str(e)}\n⌘ 𝐍𝐚𝐦𝐞 » {name}\n⌘ 𝐋𝐢𝐧𝐤 » `{url}`")
+                continue
+
             elif '/master.mpd' in url:
              id =  url.split("/")[-2]
              url =  "https://d26g5bnklkwsh4.cloudfront.net/" + id + "/master.m3u8"
