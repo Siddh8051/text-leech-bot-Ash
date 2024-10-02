@@ -223,6 +223,9 @@ async def account_login(bot: Client, m: Message):
                 ).json()["url"]
 
             elif "akamai.net.in" in url:
+                # Extract video name from URL or define it manually
+                name = url.split("/")[-1].split(".")[0]
+
                 url = url.replace("encrypted.mkv", "manifest.m3u8")
                 cmd = f'yt-dlp -f "bv[height=480][ext=mp4]+ba[ext=m4a]" "{url}" -o "{name}.mp4"'
                 try:
